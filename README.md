@@ -18,4 +18,4 @@ Aplikacion quiz interaktiv me 10 pyetje gjeografie.
 - HTML5, CSS3, JavaScript (Vanilla)
 
 ## 👤 Autori
-Emri Mbiemri - Detyre Kursi 2024-2025
+Eden Cerova
