@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz - Gjeografi</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{min-height:100vh;background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;padding:20px}
+  .card{background:rgba(255,255,255,0.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);border-radius:28px;width:100%;max-width:560px;padding:40px;color:#fff}
+  .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px}
+  .badge{background:rgba(255,255,255,0.1);border-radius:20px;padding:6px 14px;font-size:13px;color:rgba(255,255,255,0.7)}
+  .score-badge{background:linear-gradient(90deg,#f7971e,#ffd200);color:#000;font-weight:700;border-radius:20px;padding:6px 14px;font-size:13px}
+  .progress-bar{background:rgba(255,255,255,0.1);border-radius:999px;height:6px;margin-bottom:32px;overflow:hidden}
+  .progress-fill{background:linear-gradient(90deg,#f7971e,#ffd200);height:100%;border-radius:999px;transition:width .5s ease}
+  .q-num{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:12px}
+  .question{font-size:24px;font-weight:700;line-height:1.3;margin-bottom:32px}
+  .options{display:flex;flex-direction:column;gap:12px;margin-bottom:28px}
+  .opt{background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.1);border-radius:16px;padding:16px 20px;cursor:pointer;font-size:16px;font-family:'Outfit',sans-serif;color:#fff;text-align:left;transition:all .2s}
+  .opt:hover:not(:disabled){background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.3)}
+  .opt.correct{background:rgba(34,197,94,0.2);border-color:#22c55e;color:#86efac}
+  .opt.wrong{background:rgba(239,68,68,0.2);border-color:#ef4444;color:#fca5a5}
+  .opt:disabled{cursor:default}
+  .next-btn{width:100%;background:linear-gradient(90deg,#f7971e,#ffd200);color:#000;border:none;border-radius:16px;padding:16px;font-family:'Outfit',sans-serif;font-size:17px;font-weight:700;cursor:pointer;transition:opacity .2s;display:none}
+  .next-btn:hover{opacity:.88}
+  .result{text-align:center;display:none}
+  .result-emoji{font-size:64px;margin-bottom:16px}
+  .result-title{font-size:32px;font-weight:800;margin-bottom:8px}
+  .result-sub{color:rgba(255,255,255,0.6);font-size:16px;margin-bottom:32px}
+  .result-score{font-size:56px;font-weight:800;background:linear-gradient(90deg,#f7971e,#ffd200);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+  .restart{background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);color:#fff;border-radius:16px;padding:14px 32px;font-family:'Outfit',sans-serif;font-size:16px;cursor:pointer;transition:background .2s}
+  .restart:hover{background:rgba(255,255,255,0.2)}
+</style>
+</head>
+<body>
+<div class="card">
+  <div id="quiz">
+    <div class="top">
+      <div class="badge" id="qBadge">Pyetja 1/10</div>
+      <div class="score-badge">⭐ <span id="scoreD">0</span></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="prog" style="width:10%"></div></div>
+    <div class="q-num" id="qNum">PYETJA 01</div>
+    <div class="question" id="qText"></div>
+    <div class="options" id="opts"></div>
+    <button class="next-btn" id="nextBtn" onclick="next()">Pyetja Tjeter →</button>
+  </div>
+  <div class="result" id="result">
+    <div class="result-emoji" id="rEmoji"></div>
+    <div class="result-title" id="rTitle"></div>
+    <div class="result-sub" id="rSub"></div>
+    <div class="result-score" id="rScore"></div>
+    <button class="restart" onclick="restart()">🔄 Provo Perseri</button>
+  </div>
+</div>
+<script>
+const qs=[
+  {q:"Cila eshte kryeqyteti i Shqiperise?",a:"Tirane",opts:["Shkoder","Tirane","Durres","Vlore"]},
+  {q:"Ne cilin kontinent ndodhet Brazili?",a:"Amerika Jugore",opts:["Afrika","Azi","Amerika Jugore","Evrope"]},
+  {q:"Cila eshte lumi me i gjate ne bote?",a:"Nili",opts:["Amazoni","Nili","Jangci","Mississippi"]},
+  {q:"Sa shtete ka Bashkimi Europian?",a:"27",opts:["25","27","28","30"]},
+  {q:"Cila eshte shteti me i madh ne bote sipas siperfaqes?",a:"Rusia",opts:["Kina","SHBA","Rusia","Kanada"]},
+  {q:"Ne cilin oqean ndodhet Islanda?",a:"Oqeani Atlantik",opts:["Oqeani Paqesor","Oqeani Indian","Oqeani Atlantik","Oqeani Arktik"]},
+  {q:"Cila eshte kryeqyteti i Japonise?",a:"Tokio",opts:["Osaka","Tokio","Kioto","Hiroshima"]},
+  {q:"Cila male eshte me e larte ne bote?",a:"Everesti",opts:["K2","Kanchenjunga","Everesti","Lhotse"]},
+  {q:"Cila shteti ka numrin me te madh te popullsise?",a:"India",opts:["Kina","India","SHBA","Brazili"]},
+  {q:"Ne cilin shtet ndodhet Sahara?",a:"Afrika Veriore",opts:["Arabia Saudite","Afrika Veriore","Meksike","Australi"]},
+];
+let cur=0,score=0,answered=false;
+function load(){
+  const q=qs[cur];
+  document.getElementById('qBadge').textContent='Pyetja '+(cur+1)+'/'+qs.length;
+  document.getElementById('qNum').textContent='PYETJA '+(cur+1<10?'0':'')+(cur+1);
+  document.getElementById('prog').style.width=((cur+1)/qs.length*100)+'%';
+  document.getElementById('qText').textContent=q.q;
+  document.getElementById('scoreD').textContent=score;
+  const opts=document.getElementById('opts');
+  opts.innerHTML='';
+  const shuffled=[...q.opts].sort(()=>Math.random()-.5);
+  shuffled.forEach(o=>{
+    const btn=document.createElement('button');
+    btn.className='opt';btn.textContent=o;
+    btn.onclick=()=>answer(o,q.a,btn);
+    opts.appendChild(btn);
+  });
+  document.getElementById('nextBtn').style.display='none';
+  answered=false;
+}
+function answer(chosen,correct,btn){
+  if(answered)return;answered=true;
+  document.querySelectorAll('.opt').forEach(b=>{b.disabled=true;if(b.textContent===correct)b.classList.add('correct');});
+  if(chosen===correct){score++;btn.classList.add('correct');}
+  else{btn.classList.add('wrong');}
+  document.getElementById('scoreD').textContent=score;
+  document.getElementById('nextBtn').style.display='block';
+  document.getElementById('nextBtn').textContent=cur===qs.length-1?'Shiko Rezultatin →':'Pyetja Tjeter →';
+}
+function next(){
+  cur++;
+  if(cur>=qs.length){showResult();}else{load();}
+}
+function showResult(){
+  document.getElementById('quiz').style.display='none';
+  const res=document.getElementById('result');res.style.display='block';
+  const pct=Math.round(score/qs.length*100);
+  document.getElementById('rScore').textContent=score+'/'+qs.length;
+  document.getElementById('rEmoji').textContent=pct>=80?'🏆':pct>=60?'👏':pct>=40?'😊':'💪';
+  document.getElementById('rTitle').textContent=pct>=80?'Shkelqeshem!':pct>=60?'Shume mire!':pct>=40?'Mire!':'Provo perseri!';
+  document.getElementById('rSub').textContent='Ke pergjigjur sakt '+score+' nga '+qs.length+' pyetje ('+pct+'%)';
+}
+function restart(){cur=0;score=0;document.getElementById('quiz').style.display='block';document.getElementById('result').style.display='none';load();}
+load();
+</script>
+</body>
+</html>
